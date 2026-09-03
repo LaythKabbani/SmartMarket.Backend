@@ -1,0 +1,6 @@
+@SmartMarket.WebApi_HostAddress = http://localhost:5118
+
+GET {{SmartMarket.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

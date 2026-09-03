@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SmartMarket.Application/SmartMarket.Application.csproj" />
+    <Project Path="src/SmartMarket.Domain/SmartMarket.Domain.csproj" />
+    <Project Path="src/SmartMarket.Infrastructure/SmartMarket.Infrastructure.csproj" />
+    <Project Path="src/SmartMarket.WebApi/SmartMarket.WebApi.csproj" />
+  </Folder>
+</Solution>
