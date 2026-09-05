@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AutoMapper;
+using FluentValidation;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace SmartMarket.Application;
 
@@ -6,8 +10,16 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // مستقبلاً هون رح نسجل الـ MediatR, AutoMapper, FluentValidation
-        // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        var assembly = Assembly.GetExecutingAssembly();
+
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.AddMaps(assembly);
+        });
+
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+
+        services.AddValidatorsFromAssembly(assembly);
 
         return services;
     }
