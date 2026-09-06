@@ -38,4 +38,13 @@ public class Product : BaseEntity
         StockQuantity += quantity;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void Update(string name, string description, decimal price, int stockQuantity, Guid categoryId)
+    {
+        Name = name;
+        Description = description;
+        Price = price;
+        StockQuantity = stockQuantity;
+        CategoryId = categoryId;
+    }
 }
