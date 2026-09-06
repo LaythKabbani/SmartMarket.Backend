@@ -20,4 +20,11 @@ public class Store : BaseEntity
         Description = description;
         LogoUrl = logoUrl;
     }
+
+    public void Update(string name, string? description, string? logoUrl)
+    {
+        Name = name;
+        Description = description;
+        LogoUrl = logoUrl;
+    }
 }
