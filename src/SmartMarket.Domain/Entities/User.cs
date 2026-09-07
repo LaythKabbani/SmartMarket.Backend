@@ -1,11 +1,13 @@
-﻿namespace SmartMarket.Domain.Entities;
+﻿using SmartMarket.Domain.Enums;
+
+namespace SmartMarket.Domain.Entities;
 
 public class User : BaseEntity
 {
     public string FullName { get; private set; } = default!;
     public string Email { get; private set; } = default!;
     public string PasswordHash { get; private set; } = default!;
-    public string Role { get; private set; } = "Customer"; // SuperAdmin, Merchant, Customer
+    public UserRole Role { get; private set; } = UserRole.Customer; // SuperAdmin, Merchant, Customer
 
     // Navigation Properties
     public ICollection<Store> Stores { get; private set; } = new List<Store>();
@@ -14,11 +16,17 @@ public class User : BaseEntity
 
     private User() { }
 
-    public User(string fullName, string email, string passwordHash, string role = "Customer")
+    public User(string fullName, string email, string passwordHash, UserRole role = UserRole.Customer)
     {
         FullName = fullName;
         Email = email;
         PasswordHash = passwordHash;
+        Role = role;
+    }
+
+    public void Update(string fullName, UserRole role)
+    {
+        FullName = fullName;
         Role = role;
     }
 }

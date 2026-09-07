@@ -14,6 +14,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email).IsUnique();
         builder.Property(u => u.Role).HasMaxLength(20).IsRequired();
 
+        builder.Property(u => u.Role).HasConversion<string>();
+
         builder.HasMany(u => u.RefreshTokens)
                .WithOne(rt => rt.User)
                .HasForeignKey(rt => rt.UserId)
