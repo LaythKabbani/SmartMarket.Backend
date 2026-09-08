@@ -5,6 +5,5 @@ namespace SmartMarket.Application.Features.Orders.Commands.CreateOrder;
 
 public record CreateOrderCommand(
     Guid UserId,
-    string ShippingAddress,
-    List<OrderItemRequest> Items
+    string ShippingAddress
 ) : IRequest<Result<Guid>>;

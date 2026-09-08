@@ -13,8 +13,5 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
     {
         RuleFor(o => o.UserId).NotEmpty().WithMessage("User ID is required.");
         RuleFor(o => o.ShippingAddress).NotEmpty().WithMessage("Shipping address is required.");
-        RuleFor(o => o.Items).NotEmpty().WithMessage("Order must contain at least one item.");
-        RuleForEach(o => o.Items)
-            .SetValidator(new OrderItemRequestValidator());
     }
 }

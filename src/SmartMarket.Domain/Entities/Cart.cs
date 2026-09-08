@@ -12,6 +12,33 @@ public class Cart : BaseEntity
     {
         UserId = userId;
     }
+
+    public void AddOrUpdateItem(Guid productId, int quantity)
+    {
+        var existingItem = Items.FirstOrDefault(i => i.ProductId == productId);
+        if (existingItem != null)
+        {
+            existingItem.UpdateQuantity(existingItem.Quantity + quantity);
+        }
+        else
+        {
+            Items.Add(new CartItem(Id, productId, quantity));
+        }
+    }
+
+    public void RemoveItem(Guid productId)
+    {
+        var item = Items.FirstOrDefault(i => i.ProductId == productId);
+        if (item != null)
+        {
+            Items.Remove(item);
+        }
+    }
+
+    public void Clear()
+    {
+        Items.Clear();
+    }
 }
 
 public class CartItem : BaseEntity
@@ -31,5 +58,10 @@ public class CartItem : BaseEntity
         CartId = cartId;
         ProductId = productId;
         Quantity = quantity;
+    }
+
+    public void UpdateQuantity(int newQuantity)
+    {
+        Quantity = newQuantity;
     }
 }
