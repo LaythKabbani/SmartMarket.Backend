@@ -9,7 +9,7 @@ public class UpdateProductStockCommandValidator : AbstractValidator<UpdateProduc
         RuleFor(x => x.Id)
             .NotEmpty().WithMessage("Product ID is required.");
 
-        RuleFor(x => x.QuantityChange)
+        RuleFor(x => x.Quantity)
             .NotEqual(0).WithMessage("Quantity change cannot be zero.");
     }
 }

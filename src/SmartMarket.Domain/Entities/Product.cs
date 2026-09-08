@@ -30,12 +30,12 @@ public class Product : BaseEntity
 
     public void UpdateStock(int quantity)
     {
-        if (StockQuantity + quantity < 0)
+        if (quantity < 0)
         {
             throw new InvalidOperationException($"Cannot reduce stock below zero. Current stock: {StockQuantity}, requested change: {quantity}");
         }
         
-        StockQuantity += quantity;
+        StockQuantity = quantity;
         UpdatedAt = DateTime.UtcNow;
     }
 

@@ -24,12 +24,12 @@ public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductSto
             return Result<bool>.Failure("Product not found.");
         }
 
-        if (product.StockQuantity + request.QuantityChange < 0)
+        if (request.Quantity < 0)
         {
             return Result<bool>.Failure("Insufficient stock quantity.");
         }
 
-        product.UpdateStock(request.QuantityChange);
+        product.UpdateStock(request.Quantity);
 
         await _context.SaveChangesAsync(cancellationToken);
 
