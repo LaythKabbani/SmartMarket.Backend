@@ -1,0 +1,1 @@
+﻿public record LogoutRequest(string RefreshToken);
