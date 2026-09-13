@@ -36,9 +36,11 @@ public class ProductsController : ApiControllerBase
 
     // POST: api/products
     [HttpPost]
+    [Authorize(Roles = "Merchant")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<Guid>>> CreateProduct([FromBody] CreateProductCommand command)
     {
         var result = await Mediator.Send(command);
@@ -47,9 +49,11 @@ public class ProductsController : ApiControllerBase
 
     // PUT: api/products/{id}
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Merchant")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> UpdateProduct(Guid id, [FromBody] UpdateProductRequest request)
     {
         var command = new UpdateProductCommand(
@@ -67,9 +71,11 @@ public class ProductsController : ApiControllerBase
 
     // PATCH: api/products/{id}/stock
     [HttpPatch("{id:guid}/stock")]
+    [Authorize(Roles = "Merchant")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> UpdateStock(Guid id, [FromBody] UpdateProductStockRequest request)
     {
         var result = await Mediator.Send(new UpdateProductStockCommand(id, request.QuantityChange));
@@ -78,9 +84,11 @@ public class ProductsController : ApiControllerBase
 
     // DELETE: api/products/{id}
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Merchant")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> DeleteProduct(Guid id)
     {
         var result = await Mediator.Send(new DeleteProductCommand(id));

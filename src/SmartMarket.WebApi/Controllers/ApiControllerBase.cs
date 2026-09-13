@@ -14,4 +14,10 @@ public abstract class ApiControllerBase : ControllerBase
     protected string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     protected string? CurrentUserEmail => User.FindFirstValue(ClaimTypes.Email);
+
+    protected string? CurrentUserRole => User.FindFirstValue(ClaimTypes.Role);
+
+    protected bool IsSuperAdmin => User.IsInRole("SuperAdmin");
+    protected bool IsMerchant => User.IsInRole("Merchant");
+    protected bool IsCustomer => User.IsInRole("Customer");
 }

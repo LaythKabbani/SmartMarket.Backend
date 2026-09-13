@@ -19,6 +19,7 @@ public class OrdersController : ApiControllerBase
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<Guid>>> Create([FromBody] CreateOrderRequest request)
     {
         if (!Guid.TryParse(CurrentUserId, out var userId))
@@ -35,6 +36,7 @@ public class OrdersController : ApiControllerBase
     [ProducesResponseType(typeof(Result<OrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<OrderDto>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<OrderDto>>> GetById(Guid id)
     {
         var result = await Mediator.Send(new GetOrderByIdQuery(id));
@@ -46,6 +48,7 @@ public class OrdersController : ApiControllerBase
     [ProducesResponseType(typeof(Result<List<OrderDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<List<OrderDto>>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<List<OrderDto>>>> GetMyOrders()
     {
         if (!Guid.TryParse(CurrentUserId, out var userId))
@@ -57,9 +60,11 @@ public class OrdersController : ApiControllerBase
 
     // PATCH: api/orders/{id}/status
     [HttpPatch("{id:guid}/status")]
+    [Authorize(Roles = "Merchant,SuperAdmin")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusRequest request)
     {
         var result = await Mediator.Send(new UpdateOrderStatusCommand(id, request.Status));
@@ -71,6 +76,7 @@ public class OrdersController : ApiControllerBase
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> Cancel(Guid id)
     {
         var result = await Mediator.Send(new CancelOrderCommand(id));

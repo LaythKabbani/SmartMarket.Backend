@@ -17,6 +17,7 @@ public class CartsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<CartDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<CartDto>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<CartDto>>> GetMyCart()
     {
         if (!Guid.TryParse(CurrentUserId, out var userId))
@@ -31,6 +32,7 @@ public class CartsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<Guid>>> AddToCart([FromBody] AddToCartRequest request)
     {
         if (!Guid.TryParse(CurrentUserId, out var userId))
@@ -47,6 +49,7 @@ public class CartsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> UpdateQuantity([FromBody] UpdateCartItemQuantityRequest request)
     {
         if (!Guid.TryParse(CurrentUserId, out var userId))
@@ -63,6 +66,7 @@ public class CartsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> RemoveItem(Guid productId)
     {
         if (!Guid.TryParse(CurrentUserId, out var userId))

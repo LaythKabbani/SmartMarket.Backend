@@ -35,9 +35,11 @@ public class CategoriesController : ApiControllerBase
 
     // POST: api/categories
     [HttpPost]
+    [Authorize(Roles = "SuperAdmin")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<Guid>>> CreateCategory([FromBody] CreateCategoryCommand command)
     {
         var result = await Mediator.Send(command);
@@ -46,9 +48,11 @@ public class CategoriesController : ApiControllerBase
 
     // PUT: api/categories/{id}
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "SuperAdmin")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> UpdateCategory(Guid id, [FromBody] UpdateCategoryRequest request)
     {
         var command = new UpdateCategoryCommand(id, request.Name, request.Description);
@@ -59,9 +63,11 @@ public class CategoriesController : ApiControllerBase
 
     // DELETE: api/categories/{id}
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "SuperAdmin")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> DeleteCategory(Guid id)
     {
         var result = await Mediator.Send(new DeleteCategoryCommand(id));

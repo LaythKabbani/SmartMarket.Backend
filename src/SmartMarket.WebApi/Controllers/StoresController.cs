@@ -13,7 +13,7 @@ namespace SmartMarket.WebApi.Controllers;
 [Authorize]
 public class StoresController : ApiControllerBase
 {
-    //GET: api/stores?pageNumber=1
+    // GET: api/stores?pageNumber=1
     [AllowAnonymous]
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedList<StoreDto>), StatusCodes.Status200OK)]
@@ -35,9 +35,11 @@ public class StoresController : ApiControllerBase
 
     // POST: api/stores
     [HttpPost]
+    [Authorize(Roles = "Merchant,SuperAdmin")]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<Guid>>> CreateStore([FromBody] CreateStoreRequest request)
     {
         if (!Guid.TryParse(CurrentUserId, out var ownerId))
@@ -51,9 +53,11 @@ public class StoresController : ApiControllerBase
 
     // PUT: api/stores/{id}
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Merchant")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> UpdateStore(Guid id, [FromBody] UpdateStoreRequest request)
     {
         var command = new UpdateStoreCommand(id, request.Name, request.Description, request.LogoUrl);
@@ -64,9 +68,11 @@ public class StoresController : ApiControllerBase
 
     // DELETE: api/stores/{id}
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Merchant,SuperAdmin")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<Result<bool>>> DeleteStore(Guid id)
     {
         var result = await Mediator.Send(new DeleteStoreCommand(id));

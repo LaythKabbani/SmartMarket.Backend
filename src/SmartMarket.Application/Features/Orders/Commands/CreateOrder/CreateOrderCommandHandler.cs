@@ -9,17 +9,31 @@ namespace SmartMarket.Application.Features.Orders.Commands.CreateOrder;
 public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public CreateOrderCommandHandler(IApplicationDbContext context)
+    public CreateOrderCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
+        if (!Guid.TryParse(_currentUserService.UserId, out var currentUserId))
+        {
+            return Result<Guid>.Failure("Unauthorized access.");
+        }
+
+        if (request.UserId != currentUserId)
+        {
+            return Result<Guid>.Failure("You can only create orders for your own account.");
+        }
+
         var cart = await _context.Carts
             .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.UserId == request.UserId, cancellationToken);
+            .FirstOrDefaultAsync(c => c.UserId == currentUserId, cancellationToken);
 
         if (cart == null || !cart.Items.Any())
         {
@@ -49,7 +63,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
             totalAmount += product.Price * cartItem.Quantity;
         }
 
-        var order = new Order(request.UserId, totalAmount, request.ShippingAddress);
+        var order = new Order(currentUserId, totalAmount, request.ShippingAddress);
 
         foreach (var cartItem in cart.Items)
         {

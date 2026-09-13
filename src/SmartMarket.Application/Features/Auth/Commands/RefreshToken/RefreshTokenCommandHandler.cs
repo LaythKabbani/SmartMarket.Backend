@@ -53,7 +53,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             user.Id
         );
 
-        user.RefreshTokens.Add(newRefreshToken);
+        await _context.RefreshTokens.AddAsync(newRefreshToken, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         var response = new AuthResponse(

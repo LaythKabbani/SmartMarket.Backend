@@ -31,9 +31,6 @@ var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection(JwtSettings.SectionName).Bind(jwtSettings);
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 
-builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -87,6 +84,8 @@ builder.Services.AddSwaggerGen(options =>
             [new OpenApiSecuritySchemeReference("Bearer", document)] = []
         });
 });
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);

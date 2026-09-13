@@ -12,6 +12,9 @@ public class StoreConfiguration : IEntityTypeConfiguration<Store>
         builder.Property(s => s.Name).HasMaxLength(150).IsRequired();
         builder.Property(s => s.Description).HasMaxLength(500);
 
+        builder.HasIndex(s => s.OwnerId)
+            .IsUnique();
+
         builder.HasMany(s => s.Products)
                .WithOne(p => p.Store)
                .HasForeignKey(p => p.StoreId)

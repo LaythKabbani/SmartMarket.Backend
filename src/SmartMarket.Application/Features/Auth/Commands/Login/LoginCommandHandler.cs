@@ -54,7 +54,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             user.Id
         );
 
-        user.RefreshTokens.Add(refreshToken);
+        await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         var response = new AuthResponse(
