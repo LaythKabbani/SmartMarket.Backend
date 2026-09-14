@@ -9,6 +9,9 @@ public class User : BaseEntity
     public string PasswordHash { get; private set; } = default!;
     public UserRole Role { get; private set; } = UserRole.Customer; // SuperAdmin, Merchant, Customer
 
+    public string? PasswordResetOtp { get; private set; } = default!;
+    public DateTime? OtpExpiresAt { get; private set; }
+
     // Navigation Properties
     public ICollection<Store> Stores { get; private set; } = new List<Store>();
     public ICollection<Order> Orders { get; private set; } = new List<Order>();
@@ -28,5 +31,16 @@ public class User : BaseEntity
     {
         FullName = fullName;
         Role = role;
+    }
+
+    public void SetPasswordResetOtp(string? otp, DateTime? expiresAt)
+    {
+        PasswordResetOtp = otp;
+        OtpExpiresAt = expiresAt;
+    }
+
+    public void ChangePassword(string newPasswordHash)
+    {
+        PasswordHash = newPasswordHash;
     }
 }

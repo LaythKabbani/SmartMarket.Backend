@@ -4,10 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Security.Handlers;
+using SmartMarket.Domain.Entities;
 using SmartMarket.Infrastructure.Authentication;
 using SmartMarket.Infrastructure.Persistence;
 using SmartMarket.Infrastructure.Security.Handlers;
 using SmartMarket.Infrastructure.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace SmartMarket.Infrastructure;
 
@@ -22,17 +24,10 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
-        services.AddSingleton<IAuthorizationHandler, UserOwnerOrAdminHandler>();
-        services.AddSingleton<IAuthorizationHandler, StoreOwnerOrAdminHandler>();
-        services.AddSingleton<IAuthorizationHandler, CanCreateStoreHandler>();
-        services.AddSingleton<IAuthorizationHandler, OrderOwnerOrAdminHandler>();
-        services.AddSingleton<IAuthorizationHandler, SameAuthorOrStoreOwnerOrAdminHandler>();
-
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-        // Later here I will add repositories and services like JWT, Email, FileStorage.
+        services.AddScoped<IEmailService, FakeEmailService>();
 
         return services;
     }
