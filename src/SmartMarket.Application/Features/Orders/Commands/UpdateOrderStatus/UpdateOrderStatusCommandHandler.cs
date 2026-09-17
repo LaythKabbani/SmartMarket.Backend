@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
 using SmartMarket.Application.Common.Security;
@@ -13,21 +14,25 @@ public class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrderStatus
     private readonly IApplicationDbContext _context;
     private readonly IAuthorizationService _authorizationService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ILogger<UpdateOrderStatusCommandHandler> _logger;
 
     public UpdateOrderStatusCommandHandler(
         IApplicationDbContext context,
         IAuthorizationService authorizationService,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ILogger<UpdateOrderStatusCommandHandler> logger)
     {
         _context = context;
         _authorizationService = authorizationService;
         _currentUserService = currentUserService;
+        _logger = logger;
     }
 
     public async Task<Result<bool>> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
     {
         if (_currentUserService.User == null)
         {
+            _logger.LogWarning("Unauthorized attempt to update status for OrderId {OrderId}.", request.OrderId);
             return Result<bool>.Failure("Unauthorized access.");
         }
 
@@ -39,6 +44,7 @@ public class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrderStatus
 
         if (order == null)
         {
+            _logger.LogWarning("Update order status failed. OrderId {OrderId} not found.", request.OrderId);
             return Result<bool>.Failure("Order not found.");
         }
 
@@ -50,11 +56,14 @@ public class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrderStatus
 
         if (!authResult.Succeeded)
         {
+            _logger.LogWarning("Forbidden attempt to update OrderId {OrderId} status by UserId {UserId}.",
+                request.OrderId, _currentUserService.UserId);
             return Result<bool>.Failure("You are not authorized to update this order's status.");
         }
 
         if (order.Status == OrderStatus.Cancelled)
         {
+            _logger.LogWarning("Attempted to update status of an already cancelled OrderId {OrderId}.", order.Id);
             return Result<bool>.Failure("Cannot change status of a cancelled order.");
         }
 
@@ -73,11 +82,17 @@ public class UpdateOrderStatusCommandHandler : IRequestHandler<UpdateOrderStatus
                     product.UpdateStock(product.StockQuantity + item.Quantity);
                 }
             }
+
+            _logger.LogInformation("Order {OrderId} is being cancelled by admin/owner. Stock restored.", order.Id);
         }
 
+        var oldStatus = order.Status;
         order.UpdateStatus(request.Status);
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Order {OrderId} status updated successfully from {OldStatus} to {NewStatus} by UserId {UserId}.",
+            order.Id, oldStatus, request.Status, _currentUserService.UserId);
 
         return Result<bool>.Success(true);
     }

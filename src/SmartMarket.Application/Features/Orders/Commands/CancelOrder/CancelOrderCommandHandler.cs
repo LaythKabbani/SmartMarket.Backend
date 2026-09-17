@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
 using SmartMarket.Application.Common.Security;
@@ -13,21 +14,25 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
     private readonly IApplicationDbContext _context;
     private readonly IAuthorizationService _authorizationService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ILogger<CancelOrderCommandHandler> _logger;
 
     public CancelOrderCommandHandler(
         IApplicationDbContext context,
         IAuthorizationService authorizationService,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ILogger<CancelOrderCommandHandler> logger)
     {
         _context = context;
         _authorizationService = authorizationService;
         _currentUserService = currentUserService;
+        _logger = logger;
     }
 
     public async Task<Result<bool>> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
         if (_currentUserService.User == null)
         {
+            _logger.LogWarning("Unauthorized attempt to cancel order {OrderId}", request.OrderId);
             return Result<bool>.Failure("Unauthorized access.");
         }
 
@@ -39,6 +44,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
 
         if (order == null)
         {
+            _logger.LogWarning("Cancel order failed. OrderId {OrderId} not found.", request.OrderId);
             return Result<bool>.Failure("Order not found.");
         }
 
@@ -50,11 +56,15 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
 
         if (!authResult.Succeeded)
         {
+            _logger.LogWarning("Forbidden attempt to cancel order {OrderId} by UserId {UserId}",
+                request.OrderId, _currentUserService.UserId);
             return Result<bool>.Failure("You are not authorized to cancel this order.");
         }
 
         if (order.Status != OrderStatus.Pending)
         {
+            _logger.LogWarning("Failed to cancel OrderId {OrderId}. Reason: Order status is {Status}, not Pending.",
+                order.Id, order.Status);
             return Result<bool>.Failure("Only pending orders can be cancelled.");
         }
 
@@ -75,6 +85,9 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Order {OrderId} cancelled successfully by UserId {UserId}. Stock restored.",
+            order.Id, _currentUserService.UserId);
 
         return Result<bool>.Success(true);
     }

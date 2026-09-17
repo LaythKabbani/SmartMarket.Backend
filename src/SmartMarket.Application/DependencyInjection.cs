@@ -21,7 +21,11 @@ public static class DependencyInjection
             cfg.AddMaps(assembly);
         });
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
 
         services.AddValidatorsFromAssembly(assembly);
 

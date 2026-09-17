@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
 using SmartMarket.Application.Common.Security;
@@ -15,15 +16,18 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Res
     private readonly IApplicationDbContext _context;
     private readonly IAuthorizationService _authorizationService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ILogger<CreateStoreCommandHandler> _logger;
 
     public CreateStoreCommandHandler(
         IApplicationDbContext context,
         IAuthorizationService authorizationService,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ILogger<CreateStoreCommandHandler> logger)
     {
         _context = context;
         _authorizationService = authorizationService;
         _currentUserService = currentUserService;
+        _logger = logger;
     }
 
     public async Task<Result<Guid>> Handle(CreateStoreCommand request, CancellationToken cancellationToken)
@@ -32,6 +36,7 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Res
 
         if (currentUser == null || !Guid.TryParse(_currentUserService.UserId, out var currentUserId))
         {
+            _logger.LogWarning("Unauthorized attempt to create a store.");
             return Result<Guid>.Failure("Unauthorized access.");
         }
 
@@ -43,6 +48,7 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Res
 
         if (!authResult.Succeeded)
         {
+            _logger.LogWarning("Forbidden store creation attempt by UserId {UserId}. User lacks Merchant or Admin permissions.", currentUserId);
             return Result<Guid>.Failure("Only merchants and admins are authorized to create stores.");
         }
 
@@ -54,6 +60,7 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Res
 
         if (hasExistingStore)
         {
+            _logger.LogWarning("Store creation failed. OwnerId {OwnerId} already owns a registered store.", targetOwnerId);
             return Result<Guid>.Failure("You already own a registered store. Each merchant is limited to one store only.");
         }
 
@@ -66,6 +73,9 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Res
 
         _context.Stores.Add(store);
         await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Store created successfully. StoreId: {StoreId}, Name: {StoreName}, OwnerId: {OwnerId}, CreatedByUserId: {CreatedByUserId}",
+            store.Id, store.Name, targetOwnerId, currentUserId);
 
         return Result<Guid>.Success(store.Id);
     }

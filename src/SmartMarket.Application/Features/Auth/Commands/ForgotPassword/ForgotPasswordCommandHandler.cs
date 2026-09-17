@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
 
@@ -9,13 +10,16 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
 {
     private readonly IApplicationDbContext _context;
     private readonly IEmailService _emailService;
+    private readonly ILogger<ForgotPasswordCommandHandler> _logger;
 
     public ForgotPasswordCommandHandler(
         IApplicationDbContext context,
-        IEmailService emailService)
+        IEmailService emailService,
+        ILogger<ForgotPasswordCommandHandler> logger)
     {
         _context = context;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<Result<bool>> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -25,6 +29,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
 
         if (user == null)
         {
+            _logger.LogWarning("Password reset requested for non-existing email: {Email}", request.Email);
             return Result<bool>.Success(true);
         }
 
@@ -33,6 +38,8 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
         user.SetPasswordResetOtp(otp, DateTime.UtcNow.AddMinutes(10));
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Password reset OTP generated and sent for user email: {Email}", user.Email);
 
         await _emailService.SendPasswordResetEmailAsync(user.Email, otp, cancellationToken);
 

@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Serilog;
+using Serilog.Events;
 using SmartMarket.Application;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Domain.Settings;
@@ -125,6 +127,16 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("EntityFrameworkCore", LogEventLevel.Warning)
+    .WriteTo.Console()
+    .WriteTo.File("logs/smartmarketx-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -145,6 +157,8 @@ app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseSerilogRequestLogging();
 
 app.MapControllers();
 

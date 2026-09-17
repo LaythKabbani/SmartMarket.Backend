@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
@@ -15,17 +16,20 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IPasswordHasher _passwordHasher;
     private readonly JwtSettings _jwtSettings;
+    private readonly ILogger<RegisterCommandHandler> _logger;
 
     public RegisterCommandHandler(
         IApplicationDbContext context,
         IJwtTokenGenerator jwtTokenGenerator,
         IPasswordHasher passwordHasher,
-        IOptions<JwtSettings> jwtOption)
+        IOptions<JwtSettings> jwtOption,
+        ILogger<RegisterCommandHandler> logger)
     {
         _context = context;
         _jwtTokenGenerator = jwtTokenGenerator;
         _passwordHasher = passwordHasher;
         _jwtSettings = jwtOption.Value;
+        _logger = logger;
     }
 
     public async Task<Result<AuthResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -35,6 +39,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
 
         if (existingUser != null)
         {
+            _logger.LogWarning("Registration failed. Email already exists: {Email}", request.Email);
             return Result<AuthResponse>.Failure("Email already Exists.");
         }
 
@@ -59,6 +64,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         user.RefreshTokens.Add(refreshToken);
         _context.Users.Add(user);
         await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("User registered successfully. UserId: {UserId}, Email: {Email}, Role: {Role}", user.Id, user.Email, user.Role);
 
         var response = new AuthResponse(
             user.Id,

@@ -5,4 +5,7 @@
     <Project Path="src/SmartMarket.Infrastructure/SmartMarket.Infrastructure.csproj" />
     <Project Path="src/SmartMarket.WebApi/SmartMarket.WebApi.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="SmartMarket.Application.UnitTests/SmartMarket.Application.UnitTests.csproj" Id="e5f3e7c4-843b-4e17-b5ce-55b395322f77" />
+  </Folder>
 </Solution>

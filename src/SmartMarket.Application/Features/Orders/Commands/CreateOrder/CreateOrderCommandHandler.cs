@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
 using SmartMarket.Domain.Entities;
@@ -10,24 +11,30 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ILogger<CreateOrderCommandHandler> _logger;
 
     public CreateOrderCommandHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ILogger<CreateOrderCommandHandler> logger)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _logger = logger;
     }
 
     public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(_currentUserService.UserId, out var currentUserId))
         {
+            _logger.LogWarning("Unauthorized order creation attempt.");
             return Result<Guid>.Failure("Unauthorized access.");
         }
 
         if (request.UserId != currentUserId)
         {
+            _logger.LogWarning("Forbidden order creation attempt. CurrentUser {CurrentUserId} tried to create order for TargetUser {TargetUserId}",
+                currentUserId, request.UserId);
             return Result<Guid>.Failure("You can only create orders for your own account.");
         }
 
@@ -37,6 +44,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
         if (cart == null || !cart.Items.Any())
         {
+            _logger.LogWarning("Order creation failed for UserId: {UserId}. Reason: Cart is empty.", currentUserId);
             return Result<Guid>.Failure("Cart is empty. Add products to cart before checkout.");
         }
 
@@ -47,6 +55,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
         if (products.Count != productIds.Distinct().Count())
         {
+            _logger.LogWarning("Order creation failed for UserId: {UserId}. Reason: Some products are no longer available.", currentUserId);
             return Result<Guid>.Failure("One or more products in the cart are no longer available.");
         }
 
@@ -57,6 +66,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
             if (product.StockQuantity < cartItem.Quantity)
             {
+                _logger.LogWarning("Order creation failed for UserId: {UserId}. Reason: Insufficient stock for ProductId {ProductId}. Requested: {RequestedQuantity}, Available: {StockQuantity}",
+                    currentUserId, product.Id, cartItem.Quantity, product.StockQuantity);
                 return Result<Guid>.Failure($"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}");
             }
 
@@ -80,6 +91,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         cart.Clear();
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Order created successfully. OrderId: {OrderId}, UserId: {UserId}, TotalAmount: {TotalAmount}, ItemsCount: {ItemsCount}",
+            order.Id, currentUserId, totalAmount, order.Items.Count);
 
         return Result<Guid>.Success(order.Id);
     }

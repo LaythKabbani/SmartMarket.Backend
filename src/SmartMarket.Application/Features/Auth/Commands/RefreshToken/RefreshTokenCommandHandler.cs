@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
@@ -13,15 +14,18 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
     private readonly IApplicationDbContext _context;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly JwtSettings _jwtSettings;
+    private readonly ILogger<RefreshTokenCommandHandler> _logger;
 
     public RefreshTokenCommandHandler(
         IApplicationDbContext context,
         IJwtTokenGenerator jwtTokenGenerator,
-        IOptions<JwtSettings> jwtOptions)
+        IOptions<JwtSettings> jwtOptions,
+        ILogger<RefreshTokenCommandHandler> logger)
     {
         _context = context;
         _jwtTokenGenerator = jwtTokenGenerator;
         _jwtSettings = jwtOptions.Value;
+        _logger = logger;
     }
 
     public async Task<Result<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
@@ -32,6 +36,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         if (user == null)
         {
+            _logger.LogWarning("Failed token refresh attempt. Reason: Refresh token does not belong to any user.");
             return Result<AuthResponse>.Failure("Invalid refresh token.");
         }
 
@@ -39,6 +44,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         if (existingToken == null || !existingToken.IsActive)
         {
+            _logger.LogWarning("Failed token refresh attempt for UserId: {UserId}. Reason: Token is expired or revoked.", user.Id);
             return Result<AuthResponse>.Failure("Refresh token has expired or been revoked.");
         }
 
@@ -55,6 +61,8 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         await _context.RefreshTokens.AddAsync(newRefreshToken, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Tokens refreshed successfully for UserId: {UserId}", user.Id);
 
         var response = new AuthResponse(
             user.Id,
