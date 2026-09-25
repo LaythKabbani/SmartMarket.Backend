@@ -1,21 +1,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /app
 
-# Copy project files relative to repository root
-COPY ["SmartMarket.WebApi/SmartMarket.WebApi.csproj", "SmartMarket.WebApi/"]
-COPY ["SmartMarket.Application/SmartMarket.Application.csproj", "SmartMarket.Application/"]
-COPY ["SmartMarket.Infrastructure/SmartMarket.Infrastructure.csproj", "SmartMarket.Infrastructure/"]
-COPY ["SmartMarket.Domain/SmartMarket.Domain.csproj", "SmartMarket.Domain/"]
-
-# Restore dependencies
-RUN dotnet restore "SmartMarket.WebApi/SmartMarket.WebApi.csproj"
-
-# Copy full source code and build
+# Copy full repository content
 COPY . .
-WORKDIR "/src/SmartMarket.WebApi"
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
-# Runtime image
+# Restore dependencies via the solution file
+RUN dotnet restore "SmartMarket.sln"
+
+# Build and publish the WebApi project from inside src/
+WORKDIR "/app/src/SmartMarket.WebApi"
+RUN dotnet publish "SmartMarket.WebApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
