@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SmartMarket.Application.Common.Interfaces; // افترضنا وجود IApplicationDbContext أو IAuthService
+using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
 
 namespace SmartMarket.Application.Features.Auth.Commands.Logout;

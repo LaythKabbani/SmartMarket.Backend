@@ -27,7 +27,7 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, Result<
             return Result<Guid>.Failure($"Insufficient stock. Available: {product.StockQuantity}");
 
         var cart = await _context.Carts
-            .Include(c => c.Items)
+                .Include(c => c.Items)
             .FirstOrDefaultAsync(c => c.UserId == request.UserId, cancellationToken);
 
         if (cart == null)

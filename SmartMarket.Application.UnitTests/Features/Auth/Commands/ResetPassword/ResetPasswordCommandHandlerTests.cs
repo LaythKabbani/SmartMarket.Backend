@@ -1,34 +1,31 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Features.Auth.Commands.ResetPassword;
+using SmartMarket.Application.UnitTests.Common;
 using SmartMarket.Domain.Entities;
-using SmartMarket.Infrastructure.Persistence;
 using Xunit;
 
 namespace SmartMarket.Application.UnitTests.Features.Auth.Commands.ResetPassword;
 
-public class ResetPasswordCommandHandlerTests
+public class ResetPasswordCommandHandlerTests : TestBase
 {
-    private readonly ApplicationDbContext _context;
     private readonly Mock<IPasswordHasher> _passwordHasherMock;
     private readonly ResetPasswordCommandHandler _handler;
+    private readonly Mock<ILogger<ResetPasswordCommandHandler>> _loggerMock;
 
     public ResetPasswordCommandHandlerTests()
     {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        _context = new ApplicationDbContext(options);
         _passwordHasherMock = new Mock<IPasswordHasher>();
+        _loggerMock = new Mock<ILogger<ResetPasswordCommandHandler>>();
 
         _passwordHasherMock
             .Setup(h => h.HashPassword(It.IsAny<string>()))
             .Returns("HashedNewPassword123!");
 
-        _handler = new ResetPasswordCommandHandler(_context, _passwordHasherMock.Object);
+        _handler = new ResetPasswordCommandHandler(Context, _passwordHasherMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -51,8 +48,8 @@ public class ResetPasswordCommandHandlerTests
         var user = new User("Ahmed", "user@example.com", "OldHashedPassword");
         user.SetPasswordResetOtp("111111", DateTime.UtcNow.AddMinutes(10));
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        Context.Users.Add(user);
+        await Context.SaveChangesAsync();
 
         // Send request with an invalid OTP ("999999")
         var command = new ResetPasswordCommand("user@example.com", "999999", "NewPassword123!");
@@ -71,8 +68,8 @@ public class ResetPasswordCommandHandlerTests
         var user = new User("Ahmed", "expired@example.com", "OldHashedPassword");
         user.SetPasswordResetOtp("123456", DateTime.UtcNow.AddMinutes(-10)); // Expired 10 minutes ago
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        Context.Users.Add(user);
+        await Context.SaveChangesAsync();
 
         var command = new ResetPasswordCommand("expired@example.com", "123456", "NewPassword123!");
 
@@ -90,8 +87,8 @@ public class ResetPasswordCommandHandlerTests
         var user = new User("Ahmed", "valid@example.com", "OldHashedPassword");
         user.SetPasswordResetOtp("123456", DateTime.UtcNow.AddMinutes(10));
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        Context.Users.Add(user);
+        await Context.SaveChangesAsync();
 
         var command = new ResetPasswordCommand("valid@example.com", "123456", "NewPassword123!");
 
@@ -102,7 +99,7 @@ public class ResetPasswordCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         // Database Verification: Read clean state using AsNoTracking
-        var updatedUser = await _context.Users
+        var updatedUser = await Context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == "valid@example.com");
 

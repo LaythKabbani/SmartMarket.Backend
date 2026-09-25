@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SmartMarket.Domain.Entities;
 
 namespace SmartMarket.Application.Common.Interfaces;
@@ -16,4 +17,5 @@ public interface IApplicationDbContext
     DbSet<OrderItem> OrderItems { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-}
+    ChangeTracker ChangeTracker { get; }
+    }

@@ -6,6 +6,7 @@
     <Project Path="src/SmartMarket.WebApi/SmartMarket.WebApi.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="SmartMarket.Api.IntegrationTests/SmartMarket.Api.IntegrationTests.csproj" Id="a73cd996-fde5-4860-9302-57a12e104eaf" />
     <Project Path="SmartMarket.Application.UnitTests/SmartMarket.Application.UnitTests.csproj" Id="e5f3e7c4-843b-4e17-b5ce-55b395322f77" />
   </Folder>
 </Solution>

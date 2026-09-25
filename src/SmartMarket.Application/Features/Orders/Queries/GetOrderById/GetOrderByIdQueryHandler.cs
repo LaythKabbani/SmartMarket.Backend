@@ -49,7 +49,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
         var authResult = await _authorizationService.AuthorizeAsync(
             _currentUserService.User,
             order,
-            new OwnerOrSuperAdminRequirement()
+            new SameAuthorOrStoreOwnerOrAdminRequirement()
         );
 
         if (!authResult.Succeeded)

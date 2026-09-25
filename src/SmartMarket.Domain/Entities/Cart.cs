@@ -4,7 +4,10 @@ public class Cart : BaseEntity
 {
     public Guid UserId { get; private set; }
     public User User { get; private set; } = default!;
-    public ICollection<CartItem> Items { get; private set; } = new List<CartItem>();
+
+    private readonly List<CartItem> _items = new();
+
+    public IReadOnlyCollection<CartItem> Items => _items.AsReadOnly();
 
     private Cart() { }
 
@@ -15,14 +18,15 @@ public class Cart : BaseEntity
 
     public void AddOrUpdateItem(Guid productId, int quantity)
     {
-        var existingItem = Items.FirstOrDefault(i => i.ProductId == productId);
+        var existingItem = _items.FirstOrDefault(i => i.ProductId == productId);
         if (existingItem != null)
         {
             existingItem.UpdateQuantity(existingItem.Quantity + quantity);
         }
         else
         {
-            Items.Add(new CartItem(Id, productId, quantity));
+            var item = new CartItem(Id, productId, quantity);
+            _items.Add(item);
         }
     }
 
@@ -31,13 +35,13 @@ public class Cart : BaseEntity
         var item = Items.FirstOrDefault(i => i.ProductId == productId);
         if (item != null)
         {
-            Items.Remove(item);
+            _items.Remove(item);
         }
     }
 
     public void Clear()
     {
-        Items.Clear();
+        _items.Clear();
     }
 }
 

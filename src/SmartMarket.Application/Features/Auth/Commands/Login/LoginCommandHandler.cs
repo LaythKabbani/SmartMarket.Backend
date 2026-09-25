@@ -60,7 +60,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             user.Id
         );
 
-        await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+        user.RefreshTokens.Add(refreshToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("User logged in successfully. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
