@@ -54,7 +54,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        await DbSeeder.SeedAdminAsync(services);
+        await DbSeeder.SeedAsync(services);
     }
     catch (Exception ex)
     {
