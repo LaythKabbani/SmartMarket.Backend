@@ -1,9 +1,10 @@
-﻿using System.Text.Json.Serialization;
-using Serilog;
+﻿using Serilog;
 using SmartMarket.Application;
 using SmartMarket.Infrastructure;
+using SmartMarket.Infrastructure.Persistence;
 using SmartMarket.WebApi.Extensions;
 using SmartMarket.WebApi.Middlewares;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +47,20 @@ app.UseAuthorization();
 app.UseSerilogRequestLogging();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        await DbSeeder.SeedAdminAsync(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred during adding Admin.");
+    }
+}
 
 app.Run();
 
