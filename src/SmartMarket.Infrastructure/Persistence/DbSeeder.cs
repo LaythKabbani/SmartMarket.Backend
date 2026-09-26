@@ -13,23 +13,46 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
-        var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
-        var passwordHasher = serviceProvider.GetRequiredService<IPasswordHasher>();
-        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        // 1. Seed Admin User
+        // 1. Seed Main Admin User
         var adminEmail = configuration["AdminCredentials:Email"] ?? "admin@smartmarket.com";
-        var adminPassword = configuration["AdminCredentials:Password"];
+        var adminPassword = configuration["AdminCredentials:Password"] ?? "Password123!";
 
         var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
 
         if (adminUser == null)
         {
-            var hashedPassword = passwordHasher.HashPassword(adminPassword!);
+            var hashedPassword = passwordHasher.HashPassword(adminPassword);
             adminUser = new User("Admin", adminEmail, hashedPassword, UserRole.SuperAdmin);
             adminUser.ChangePassword(hashedPassword);
 
             await context.Users.AddAsync(adminUser);
+            await context.SaveChangesAsync();
+        }
+
+        // Seeding some Merchants
+        var techOwnerEmail = "tech_owner@smartmarket.com";
+        var freshOwnerEmail = "fresh_owner@smartmarket.com";
+
+        var techOwner = await context.Users.FirstOrDefaultAsync(u => u.Email == techOwnerEmail);
+        if (techOwner == null)
+        {
+            var hashedPassword = passwordHasher.HashPassword("Password123!");
+            techOwner = new User("Tech Owner", techOwnerEmail, hashedPassword, UserRole.Merchant);
+            await context.Users.AddAsync(techOwner);
+            await context.SaveChangesAsync();
+        }
+
+        var freshOwner = await context.Users.FirstOrDefaultAsync(u => u.Email == freshOwnerEmail);
+        if (freshOwner == null)
+        {
+            var hashedPassword = passwordHasher.HashPassword("Password123!");
+            freshOwner = new User("Fresh Owner", freshOwnerEmail, hashedPassword, UserRole.Merchant);
+            await context.Users.AddAsync(freshOwner);
             await context.SaveChangesAsync();
         }
 
@@ -59,8 +82,8 @@ public static class DbSeeder
         {
             var stores = new List<Store>
             {
-                new Store("TechZone", adminUser.Id, "Main Tech Store", "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800"),
-                new Store("FreshMarket", adminUser.Id, "Supermarket & Groceries"),
+                new Store("TechZone", techOwner.Id, "Main Tech Store", "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800"),
+                new Store("FreshMarket", freshOwner.Id, "Supermarket & Groceries"),
                 new Store("FashionHub", adminUser.Id, "Clothing & Accessories", "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800")
             };
 
@@ -71,21 +94,21 @@ public static class DbSeeder
         // 4. Seed Products
         if (!await context.Products.AnyAsync())
         {
-            var electronicsCategory = await context.Categories.FirstAsync(c => c.Name == "Electronics");
-            var groceriesCategory = await context.Categories.FirstAsync(c => c.Name == "Groceries");
-            var techStore = await context.Stores.FirstAsync(s => s.Name == "TechZone");
-            var freshStore = await context.Stores.FirstAsync(s => s.Name == "FreshMarket");
+            var electronicsCategory = await context.Categories.AsNoTracking().FirstAsync(c => c.Name == "Electronics");
+            var groceriesCategory = await context.Categories.AsNoTracking().FirstAsync(c => c.Name == "Groceries");
+            var techStore = await context.Stores.AsNoTracking().FirstAsync(s => s.Name == "TechZone");
+            var freshStore = await context.Stores.AsNoTracking().FirstAsync(s => s.Name == "FreshMarket");
 
             var products = new List<Product>
             {
-                new Product("iPhone 15 Pro", "128GB Titanium", 999.99m, 10, electronicsCategory.Id, techStore.Id,
+                new Product("iPhone 15 Pro", "128GB Titanium", 999.99m, 10, techStore.Id, electronicsCategory.Id,
                 imageUrl: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500"),
-                new Product("Wireless Headphones", "Noise cancelling Bluetooth headphones", 149.50m, 25, electronicsCategory.Id, techStore.Id,
+                new Product("Wireless Headphones", "Noise cancelling Bluetooth headphones", 149.50m, 25, techStore.Id, electronicsCategory.Id,
                 imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500"),
-                new Product("Arabica Coffee Beans 500g", "Premium roasted coffee", 12.00m, 50, groceriesCategory.Id, freshStore.Id,
+                new Product("Arabica Coffee Beans 500g", "Premium roasted coffee", 12.00m, 50, freshStore.Id, groceriesCategory.Id,
                 imageUrl: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=500"),
-                new Product("Organic Milk 1L", "Fresh whole milk", 2.50m, 100, groceriesCategory.Id, freshStore.Id),
-                new Product("USB-C Fast Charger 20W", "Compact power adapter", 19.99m, 40, electronicsCategory.Id, techStore.Id)
+                new Product("Organic Milk 1L", "Fresh whole milk", 2.50m, 100, freshStore.Id, groceriesCategory.Id),
+                new Product("USB-C Fast Charger 20W", "Compact power adapter", 19.99m, 40, techStore.Id, electronicsCategory.Id)
             };
 
             await context.Products.AddRangeAsync(products);
