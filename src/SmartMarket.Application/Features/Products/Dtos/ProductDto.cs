@@ -18,6 +18,8 @@ public class ProductDto : IMapFrom<Product>
     public Guid CategoryId { get; set; }
     public string CategoryName { get; set; } = default!;
 
+    public string? ImageUrl { get; set; } = default!;
+
     public void Mapping(Profile profile)
     {
         profile.CreateMap<Product, ProductDto>()
