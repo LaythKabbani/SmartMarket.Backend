@@ -52,18 +52,19 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             request.Role
         );
 
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync(cancellationToken);
+
         var accessToken = _jwtTokenGenerator.GenerateAccessToken(user);
         var refreshTokenString = _jwtTokenGenerator.GenerateRefreshToken();
 
-        var refreshToken = new SmartMarket.Domain.Entities.RefreshToken(
+        var refreshToken = new Domain.Entities.RefreshToken(
             refreshTokenString,
             DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays),
             user.Id
         );
 
         user.RefreshTokens.Add(refreshToken);
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("User registered successfully. UserId: {UserId}, Email: {Email}, Role: {Role}", user.Id, user.Email, user.Role);
 
