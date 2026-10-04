@@ -6,7 +6,6 @@ using Microsoft.Extensions.Hosting;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
 using SmartMarket.Domain.Events;
-using System.ComponentModel;
 
 namespace SmartMarket.Infrastructure.Services;
 
