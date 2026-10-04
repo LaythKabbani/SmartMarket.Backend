@@ -1,8 +1,10 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
+using SmartMarket.Application.Common.Security;
 using SmartMarket.Domain.Enums;
 
 namespace SmartMarket.Application.Features.Subscriptions.Commands.RenewSubscription;
@@ -12,17 +14,20 @@ public class RenewSubscriptionCommandHandler : IRequestHandler<RenewSubscription
     private readonly IApplicationDbContext _context;
     private readonly IPaymentService _paymentService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IAuthorizationService _authorizationService;
     private readonly ILogger<RenewSubscriptionCommandHandler> _logger;
 
     public RenewSubscriptionCommandHandler(
         IApplicationDbContext context,
         IPaymentService paymentService,
         ICurrentUserService currentUserService,
+        IAuthorizationService authorizationService,
         ILogger<RenewSubscriptionCommandHandler> logger)
     {
         _context = context;
         _paymentService = paymentService;
         _currentUserService = currentUserService;
+        _authorizationService = authorizationService;
         _logger = logger;
     }
 
@@ -33,6 +38,27 @@ public class RenewSubscriptionCommandHandler : IRequestHandler<RenewSubscription
         {
             _logger.LogWarning("Unauthenticated attempt to renew subscription for store {StoreId}", request.StoreId);
             return Result<bool>.Failure("Unauthorized access. User is not authenticated.");
+        }
+
+        var store = await _context.Stores
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == request.StoreId, cancellationToken);
+
+        if (store == null)
+        {
+            _logger.LogWarning("Store with ID {StoreId} not found during subscription renewal", request.StoreId);
+            return Result<bool>.Failure($"Store with ID '{request.StoreId}' was not found.");
+        }
+
+        var authorizationResult = await _authorizationService.AuthorizeAsync(
+            _currentUserService.User!,
+            store,
+            new OwnerOrSuperAdminRequirement());
+
+        if (!authorizationResult.Succeeded)
+        {
+            _logger.LogWarning("User {UserId} attempted to renew subscription for store {StoreId} without ownership/admin permission", userId, request.StoreId);
+            return Result<bool>.Failure("Forbidden: You do not have permission to renew subscription for this store.");
         }
 
         var subscription = await _context.MerchantSubscriptions
@@ -63,6 +89,8 @@ public class RenewSubscriptionCommandHandler : IRequestHandler<RenewSubscription
         int durationDays = request.PlanType switch
         {
             SubscriptionPlan.Monthly => 30,
+            SubscriptionPlan.ThreeMonths => 90,
+            SubscriptionPlan.SixMonths => 180,
             SubscriptionPlan.Yearly => 365,
             SubscriptionPlan.Demo => 14,
             _ => 30

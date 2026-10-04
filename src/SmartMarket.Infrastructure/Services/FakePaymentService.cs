@@ -15,27 +15,6 @@ public class FakePaymentService : IPaymentService
         _logger = logger;
     }
 
-    public async Task<Result<string>> ProcessPaymentAsync(PaymentRequest request, CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation("Processing fake payment for Store {StoreId} with amount {Amount} {Currency}",
-            request.StoreId, request.Amount, request.Currency);
-
-        await Task.Delay(500, cancellationToken);
-
-        if (request.CardNumber.EndsWith("0000"))
-        {
-            _logger.LogWarning("Fake payment failed for Store {StoreId} due to simulated declined card", request.StoreId);
-            return Result<string>.Failure("Card was declined (Simulated Payment Failure).");
-        }
-
-        var paymentToken = $"tok_fake_{Guid.NewGuid().ToString()[..8]}";
-
-        _logger.LogInformation("Fake payment succeeded for Store {StoreId}. Token: {Token}",
-            request.StoreId, paymentToken);
-
-        return Result<string>.Success(paymentToken);
-    }
-
     public async Task<Result<bool>> ValidateTokenAsync(string paymentToken, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Validating payment token: {Token}", paymentToken);

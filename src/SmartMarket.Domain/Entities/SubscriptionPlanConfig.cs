@@ -5,8 +5,8 @@ namespace SmartMarket.Domain.Entities;
 public class SubscriptionPlanConfig : BaseEntity
 {
     public SubscriptionPlan PlanType { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; }
+    public string Name { get; private set; } = string.Empty;
+    public decimal Price { get; private set; }
     public string Currency { get; set; } = "USD";
 
     private SubscriptionPlanConfig() { } // For EF Core
@@ -17,5 +17,10 @@ public class SubscriptionPlanConfig : BaseEntity
         Price = price;
         Currency = currency;
         Name = plan.ToString();
+    }
+
+    public void UpdatePrice(decimal newPrice)
+    {
+        Price = newPrice;
     }
 }

@@ -63,6 +63,8 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
         int durationDays = request.PlanType switch
         {
             SubscriptionPlan.Monthly => 30,
+            SubscriptionPlan.ThreeMonths => 90,
+            SubscriptionPlan.SixMonths => 180,
             SubscriptionPlan.Yearly => 365,
             SubscriptionPlan.Demo => 14,
             _ => 30

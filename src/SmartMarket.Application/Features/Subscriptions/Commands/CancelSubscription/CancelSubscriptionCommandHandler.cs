@@ -1,8 +1,10 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmartMarket.Application.Common.Interfaces;
 using SmartMarket.Application.Common.Models;
+using SmartMarket.Application.Common.Security;
 using SmartMarket.Domain.Enums;
 
 namespace SmartMarket.Application.Features.Subscriptions.Commands.CancelSubscription;
@@ -11,15 +13,18 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IAuthorizationService _authorizationService;
     private readonly ILogger<CancelSubscriptionCommandHandler> _logger;
 
     public CancelSubscriptionCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
+        IAuthorizationService authorizationService,
         ILogger<CancelSubscriptionCommandHandler> logger)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _authorizationService = authorizationService;
         _logger = logger;
     }
 
@@ -30,6 +35,27 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
         {
             _logger.LogWarning("Unauthenticated attempt to cancel subscription for store {StoreId}", request.StoreId);
             return Result<bool>.Failure("Unauthorized access. User is not authenticated.");
+        }
+
+        var store = await _context.Stores
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == request.StoreId, cancellationToken);
+
+        if (store == null)
+        {
+            _logger.LogWarning("Store with ID {StoreId} not found during cancellation", request.StoreId);
+            return Result<bool>.Failure($"Store with ID '{request.StoreId}' was not found.");
+        }
+
+        var authorizationResult = await _authorizationService.AuthorizeAsync(
+            _currentUserService.User!,
+            store,
+            new OwnerOrSuperAdminRequirement());
+
+        if (!authorizationResult.Succeeded)
+        {
+            _logger.LogWarning("User {UserId} attempted to cancel subscription for store {StoreId} without ownership/admin permission", userId, request.StoreId);
+            return Result<bool>.Failure("Forbidden: You do not have permission to modify subscriptions for this store.");
         }
 
         var subscription = await _context.MerchantSubscriptions

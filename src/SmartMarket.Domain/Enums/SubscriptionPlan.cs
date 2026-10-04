@@ -1,6 +1,8 @@
 ﻿public enum SubscriptionPlan
 {
     Monthly = 0,
-    Yearly = 1,
-    Demo = 2
+    ThreeMonths = 1,
+    SixMonths = 2,
+    Yearly = 3,
+    Demo = 4
 }

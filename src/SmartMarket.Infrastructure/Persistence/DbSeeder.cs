@@ -131,5 +131,19 @@ public static class DbSeeder
                 await context.SaveChangesAsync();
             }
         }
+
+        // 6. Seed Subscription Plans
+        if (!await context.SubscriptionPlans.AnyAsync())
+        {
+            var subscriptionPlans = new List<SubscriptionPlanConfig>
+            {
+                new SubscriptionPlanConfig(SubscriptionPlan.Monthly, 7.99m, "USD"),
+                new SubscriptionPlanConfig(SubscriptionPlan.ThreeMonths, 19.99m, "USD"),
+                new SubscriptionPlanConfig(SubscriptionPlan.SixMonths, 35.99m, "USD"),
+                new SubscriptionPlanConfig(SubscriptionPlan.Yearly, 79.99m, "USD")
+            };
+            await context.SubscriptionPlans.AddRangeAsync(subscriptionPlans);
+            await context.SaveChangesAsync();
+        }
     }
 }
