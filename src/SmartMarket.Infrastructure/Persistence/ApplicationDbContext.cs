@@ -20,6 +20,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<MerchantSubscription> MerchantSubscriptions => Set<MerchantSubscription>();
+    public DbSet<Domain.Entities.SubscriptionPlanConfig> SubscriptionPlans => base.Set<Domain.Entities.SubscriptionPlanConfig>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -23,6 +23,7 @@ public class GetStoresListQueryHandler : IRequestHandler<GetStoresListQuery, Pag
     public async Task<PaginatedList<StoreDto>> Handle(GetStoresListQuery request, CancellationToken cancellationToken)
     {
         return await _context.Stores
+            .Where(s => s.IsActive)
             .AsNoTracking()
             .ProjectTo<StoreDto>(_mapper.ConfigurationProvider)
             .PaginateAsync(request.PageNumber, request.PageSize);

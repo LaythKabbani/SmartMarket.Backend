@@ -23,7 +23,7 @@ public class GetStoreByIdQueryHandler : IRequestHandler<GetStoreByIdQuery, Resul
     {
         var store = await _context.Stores
             .AsNoTracking()
-            .Where(s => s.Id == request.Id)
+            .Where(s => s.Id == request.Id && s.IsActive)
             .ProjectTo<StoreDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
 

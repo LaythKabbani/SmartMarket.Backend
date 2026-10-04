@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IEmailService, FakeEmailService>();
 
+        services.AddHostedService<SubscriptionCheckerBackgroundService>();
+
         return services;
     }
 }

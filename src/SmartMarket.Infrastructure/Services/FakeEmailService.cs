@@ -22,4 +22,14 @@ public class FakeEmailService : IEmailService
 
         return Task.CompletedTask;
     }
+
+    public Task SendSubscriptionExpiredEmailAsync(string toEmail, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("==================================================");
+        _logger.LogInformation("📬 [FAKE EMAIL SERVICE] Subscription Expired Notification");
+        _logger.LogInformation("To: {Email}", toEmail);
+        _logger.LogInformation("==================================================");
+
+        return Task.CompletedTask;
+    }
 }

@@ -6,6 +6,7 @@ public class Store : BaseEntity
     public string? Description { get; private set; }
     public string? LogoUrl { get; private set; }
     public Guid OwnerId { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     // Navigation Properties
     public User Owner { get; private set; } = default!;
@@ -19,6 +20,7 @@ public class Store : BaseEntity
         OwnerId = ownerId;
         Description = description;
         LogoUrl = logoUrl;
+        IsActive = true;
     }
 
     public void Update(string name, string? description, string? logoUrl)
@@ -26,5 +28,10 @@ public class Store : BaseEntity
         Name = name;
         Description = description;
         LogoUrl = logoUrl;
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
     }
 }
