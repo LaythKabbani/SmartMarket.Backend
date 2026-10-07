@@ -9,5 +9,6 @@ public class StoreDto : IMapFrom<Store>
     public string Name { get; set; } = default!;
     public string? Description { get; set; }
     public string? LogoUrl { get; set; }
+    public bool IsActive { get; set; }
     public Guid OwnerId { get; set; }
 }
