@@ -16,7 +16,8 @@ public interface IApplicationDbContext
     DbSet<Order> Orders { get; }
     DbSet<OrderItem> OrderItems { get; }
     DbSet<MerchantSubscription> MerchantSubscriptions { get; }
-    DbSet<Domain.Entities.SubscriptionPlanConfig> SubscriptionPlans { get; }
+    DbSet<SubscriptionPlanConfig> SubscriptionPlans { get; }
+    DbSet<WishlistItem> WishlistItems { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     ChangeTracker ChangeTracker { get; }
