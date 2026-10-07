@@ -7,6 +7,7 @@ using SmartMarket.Application.Features.Products.Commands.UpdateProduct;
 using SmartMarket.Application.Features.Products.Commands.UpdateProductStock;
 using SmartMarket.Application.Features.Products.Dtos;
 using SmartMarket.Application.Features.Products.Queries.GetProductById;
+using SmartMarket.Application.Features.Products.Queries.GetProductsCount;
 using SmartMarket.Application.Features.Products.Queries.GetProductsList;
 
 namespace SmartMarket.WebApi.Controllers;
@@ -19,6 +20,15 @@ public class ProductsController : ApiControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedList<ProductDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PaginatedList<ProductDto>>> GetProducts([FromQuery] GetProductsListQuery query)
+    {
+        return Ok(await Mediator.Send(query));
+    }
+
+    // GET: api/products/count
+    [AllowAnonymous]
+    [HttpGet("count")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    public async Task<ActionResult<int>> GetProductsCount(GetProductsCountQuery query)
     {
         return Ok(await Mediator.Send(query));
     }
