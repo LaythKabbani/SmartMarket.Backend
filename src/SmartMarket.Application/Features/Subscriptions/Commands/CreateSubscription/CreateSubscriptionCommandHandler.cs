@@ -81,7 +81,7 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
 
         _context.MerchantSubscriptions.Add(subscription);
 
-        var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+        var user = await _context.Users.FindAsync(new object[] { Guid.Parse(userId) }, cancellationToken);
         if (user == null)
         {
             _logger.LogError("User {UserId} not found during subscription creation for store {StoreId}", userId, request.StoreId);

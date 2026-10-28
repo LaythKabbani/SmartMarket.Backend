@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SmartMarket.Application.Common.Models;
 using SmartMarket.Application.Features.Subscriptions.Commands.CancelSubscription;
 using SmartMarket.Application.Features.Subscriptions.Commands.CreateSubscription;
@@ -10,6 +11,7 @@ using SmartMarket.Application.Features.Subscriptions.Queries.GetSubscriptionBySt
 namespace SmartMarket.WebApi.Controllers;
 
 [Authorize]
+[EnableRateLimiting("TransactionRateLimit")]
 public class SubscriptionsController : ApiControllerBase
 {
     // GET: api/subscriptions/{storeId}
@@ -17,6 +19,7 @@ public class SubscriptionsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<SubscriptionDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<SubscriptionDto>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<Result<SubscriptionDto>>> CheckSubscriptionByStoreId(Guid storeId)
     {
         var result = await Mediator.Send(new GetSubscriptionByStoreIdQuery(storeId));
@@ -28,6 +31,7 @@ public class SubscriptionsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<Result<Guid>>> CreateSubscription([FromBody] CreateSubscriptionCommand command)
     {
         var result = await Mediator.Send(command);
@@ -40,6 +44,7 @@ public class SubscriptionsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<Result<bool>>> RenewSubscription([FromBody] RenewSubscriptionCommand command)
     {
         var result = await Mediator.Send(command);
@@ -52,6 +57,7 @@ public class SubscriptionsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<Result<bool>>> CancelSubscription([FromBody] CancelSubscriptionCommand command)
     {
         var result = await Mediator.Send(command);
@@ -65,6 +71,7 @@ public class SubscriptionsController : ApiControllerBase
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<Result<bool>>> UpdatePlanPrice([FromBody] UpdatePlanPriceCommand command)
     {
         var result = await Mediator.Send(command);

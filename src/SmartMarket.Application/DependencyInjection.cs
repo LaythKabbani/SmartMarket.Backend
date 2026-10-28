@@ -34,6 +34,7 @@ public static class DependencyInjection
         services.AddSingleton<IAuthorizationHandler, CanCreateStoreHandler>();
         services.AddSingleton<IAuthorizationHandler, OrderOwnerOrAdminHandler>();
         services.AddSingleton<IAuthorizationHandler, SameAuthorOrStoreOwnerOrAdminHandler>();
+        services.AddSingleton<IAuthorizationHandler, WishlistItemOwnerOrAdminHandler>();
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 

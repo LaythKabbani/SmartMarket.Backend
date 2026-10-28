@@ -29,9 +29,11 @@ public class AddToWishlistCommandHandler : IRequestHandler<AddToWishlistCommand,
         if (_currentUserService.User == null)
             return Result<bool>.Failure("Unauthorized access.");
 
+        var item = new WishlistItem(request.UserId, request.ProductId);
+
         var authResult = await _authorizationService.AuthorizeAsync(
             _currentUserService.User,
-            new WishlistItem(request.UserId, request.ProductId),
+            item,
             new OwnerOrSuperAdminRequirement());
 
         if (!authResult.Succeeded)
@@ -41,7 +43,6 @@ public class AddToWishlistCommandHandler : IRequestHandler<AddToWishlistCommand,
             .AnyAsync(w => w.UserId == request.UserId && w.ProductId == request.ProductId, ct);
         if (exists) return Result<bool>.Failure("Already in wishlist.");
 
-        var item = new WishlistItem(request.UserId, request.ProductId);
         _context.WishlistItems.Add(item);
         await _context.SaveChangesAsync(ct);
         return Result<bool>.Success(true);

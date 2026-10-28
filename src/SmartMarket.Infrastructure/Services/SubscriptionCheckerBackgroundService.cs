@@ -60,6 +60,8 @@ public class SubscriptionCheckerBackgroundService : BackgroundService
 
         foreach (var subscription in expiredSubscriptions)
         {
+            if (subscription.ExpiresAt > now) continue;
+
             await publisher.Publish(new DomainEventNotification<SubscriptionExpiredDomainEvent>(
                 new SubscriptionExpiredDomainEvent(subscription.Id, subscription.StoreId)), cancellationToken);
         }

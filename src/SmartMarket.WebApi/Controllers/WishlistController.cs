@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SmartMarket.Application.Common.Models;
 using SmartMarket.Application.Features.Wishlist.Commands.AddToWishlist;
 using SmartMarket.Application.Features.Wishlist.Commands.RemoveFromWishlist;
@@ -9,10 +10,13 @@ using SmartMarket.Application.Features.Wishlist.Queries.GetWishlist;
 namespace SmartMarket.WebApi.Controllers;
 
 [Authorize]
+[EnableRateLimiting("TransactionRateLimit")]
 public class WishlistController : ApiControllerBase
 {
     [HttpGet("my-wishlist")]
     [ProducesResponseType(typeof(Result<List<WishlistItemDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<Result<List<WishlistItemDto>>>> GetMyWishlist()
     {
         if (!Guid.TryParse(CurrentUserId, out var userId)) return Unauthorized();
@@ -23,6 +27,8 @@ public class WishlistController : ApiControllerBase
     [HttpPost("add")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<Result<bool>>> AddToWishlist([FromBody] AddToWishlistRequest request)
     {
         if (!Guid.TryParse(CurrentUserId, out var userId)) return Unauthorized();
@@ -33,6 +39,8 @@ public class WishlistController : ApiControllerBase
     [HttpDelete("items/{productId:guid}")]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<bool>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<Result<bool>>> RemoveFromWishlist(Guid productId)
     {
         if (!Guid.TryParse(CurrentUserId, out var userId)) return Unauthorized();

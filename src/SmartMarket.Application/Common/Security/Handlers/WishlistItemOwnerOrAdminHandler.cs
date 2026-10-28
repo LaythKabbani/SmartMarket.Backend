@@ -13,18 +13,16 @@ public class WishlistItemOwnerOrAdminHandler : AuthorizationHandler<OwnerOrSuper
         OwnerOrSuperAdminRequirement requirement,
         WishlistItem resource)
     {
-        if (resource == null) return Task.CompletedTask;
-
-        if (context.User.IsInRole(UserRole.SuperAdmin.ToString()))
+        var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var currentUserId))
         {
-            context.Succeed(requirement);
             return Task.CompletedTask;
         }
 
-        var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? context.User.FindFirst("sub")?.Value;
+        var isSuperAdmin = context.User.IsInRole(UserRole.SuperAdmin.ToString());
+        var isOwner = resource.UserId == currentUserId;
 
-        if (Guid.TryParse(userIdClaim, out var currentUserId) && resource.UserId == currentUserId)
+        if (isOwner || isSuperAdmin)
         {
             context.Succeed(requirement);
         }

@@ -11,13 +11,6 @@ namespace SmartMarket.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsActive",
-                table: "Stores",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
-
             migrationBuilder.AddColumn<Guid>(
                 name: "CartId1",
                 table: "CartItems",

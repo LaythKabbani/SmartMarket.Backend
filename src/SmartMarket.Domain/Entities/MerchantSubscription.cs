@@ -3,7 +3,7 @@
 public class MerchantSubscription : BaseEntity
 {
     public Guid StoreId { get; set; }
-    public global::SubscriptionPlan PlanType { get; set; } // Monthly, Yearly, Demo
+    public SubscriptionPlan PlanType { get; set; } // Monthly, Yearly, Demo
 
     public DateTime SubscripedAt { get; set; }
     public DateTime ExpiresAt { get; set; }

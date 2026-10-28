@@ -56,7 +56,7 @@ public class CreateStoreCommandHandler : IRequestHandler<CreateStoreCommand, Res
         var targetOwnerId = isSuperAdmin ? request.OwnerId : currentUserId;
 
         var hasExistingStore = await _context.Stores
-            .AnyAsync(s => s.OwnerId == targetOwnerId, cancellationToken);
+            .AnyAsync(s => s.OwnerId == targetOwnerId && s.IsActive, cancellationToken);
 
         if (hasExistingStore)
         {

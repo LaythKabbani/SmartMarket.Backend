@@ -65,6 +65,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         );
 
         user.RefreshTokens.Add(refreshToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("User registered successfully. UserId: {UserId}, Email: {Email}, Role: {Role}", user.Id, user.Email, user.Role);
 
